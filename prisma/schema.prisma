@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Rute {
+  id            Int             @id @default(autoincrement())
+  asal          String
+  tujuan        String
+  harga         Int
+  keberangkatan Keberangkatan[]
+}
+
+model Armada {
+  id            Int             @id @default(autoincrement())
+  nama          String
+  plat          String
+  jumlah_kursi  Int
+  layout_kursi  String
+  keberangkatan Keberangkatan[]
+}
+
+model Keberangkatan {
+  id       Int       @id @default(autoincrement())
+  rute_id  Int
+  armada_id Int
+  tanggal  String
+  jam      String
+  driver   String
+  rute     Rute      @relation(fields: [rute_id], references: [id])
+  armada   Armada    @relation(fields: [armada_id], references: [id])
+  bookings Booking[]
+  holds    SeatHold[]
+}
+
+model Booking {
+  id               Int           @id @default(autoincrement())
+  keberangkatan_id Int
+  kode_booking     String        @unique
+  nama_penumpang   String
+  telp             String
+  kursi            String
+  harga            Int
+  status           String        @default("booked")
+  refund_rp        Int           @default(0)
+  created_at       String
+  keberangkatan    Keberangkatan @relation(fields: [keberangkatan_id], references: [id])
+}
+
+model SeatHold {
+  id               Int           @id @default(autoincrement())
+  keberangkatan_id Int
+  kursi            String
+  holder_id        String
+  expires_at       String
+  created_at       String
+  keberangkatan    Keberangkatan @relation(fields: [keberangkatan_id], references: [id])
+
+  @@unique([keberangkatan_id, kursi])
+}
+
+model RefundRule {
+  id      Int    @id @default(autoincrement())
+  nama    String
+  min_jam Float?
+  max_jam Float?
+  persen  Int
+}
